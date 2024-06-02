@@ -43,7 +43,7 @@ func InitProxy() {
 		}
 	}
 	var localhostKey []string
-	for k, _ := range localhost {
+	for k := range localhost {
 		localhostKey = append(localhostKey, k)
 	}
 	log.Println("Http Proxy:")
@@ -51,13 +51,14 @@ func InitProxy() {
 	go startTlsServer(fmt.Sprintf("%s:%d", *config.Addr, *config.TLSPort), *config.CertFile, *config.KeyFile, &HttpHandler{})
 	go startServer(fmt.Sprintf("%s:%d", *config.Addr, *config.Port), &HttpHandler{})
 }
+
 func (h *HttpHandler) ServeHTTP(resp http.ResponseWriter, request *http.Request) {
 	defer func() {
 		if r := recover(); r != nil {
 			log.Println("Recover panic : ", r)
 		}
 	}()
-	//printMemStats()
+	// printMemStats()
 	requestURI := request.RequestURI
 	if i := strings.Index(requestURI, "/unblockmusic/"); len(requestURI) > 0 && i != -1 {
 		realMusicUrl := requestURI[i+len("/unblockmusic/"):]
@@ -85,7 +86,7 @@ func (h *HttpHandler) ServeHTTP(resp http.ResponseWriter, request *http.Request)
 		for name, values := range response.Header {
 			resp.Header()[name] = values
 		}
-		//fix ios 7.0.20
+		// fix ios 7.0.20
 		resp.Header().Del("Keep-Alive")
 		if response.StatusCode == 200 && (len(request.Header.Get("range")) > 0 || len(response.Header.Get("content-range")) > 0) {
 			response.StatusCode = 206
@@ -93,7 +94,7 @@ func (h *HttpHandler) ServeHTTP(resp http.ResponseWriter, request *http.Request)
 		resp.WriteHeader(response.StatusCode)
 		_, err = io.Copy(resp, response.Body)
 		if err != nil {
-			//log.Println("io.Copy error:", err)
+			// log.Println("io.Copy error:", err)
 			return
 		}
 	} else {
@@ -118,7 +119,7 @@ func (h *HttpHandler) ServeHTTP(resp http.ResponseWriter, request *http.Request)
 			scheme = request.URL.Scheme + "://"
 		}
 		infinite := false
-		for k, _ := range localhost {
+		for k := range localhost {
 			if strings.Contains(hostStr, k) {
 				infinite = true
 				break
@@ -128,7 +129,7 @@ func (h *HttpHandler) ServeHTTP(resp http.ResponseWriter, request *http.Request)
 			strings.Contains(hostStr, "127.0.0.1") ||
 			strings.Contains(hostStr, "0.0.0.0") ||
 			(len(path) > 1 && strings.Count(path, "/") > 1 && bytes.EqualFold(left, right)) {
-			//cause infinite loop
+			// cause infinite loop
 			requestURI = scheme + request.Host
 			pathA := ""
 			if bytes.EqualFold(left, right) {
@@ -188,7 +189,7 @@ func (h *HttpHandler) ServeHTTP(resp http.ResponseWriter, request *http.Request)
 					log.Println("Request Blocked:", urlString)
 					return
 				}
-				//log.Printf("{path:%s,web:%v,encrypted:%v}\n", netease.Path, netease.Web, netease.Encrypted)
+				// log.Printf("{path:%s,web:%v,encrypted:%v}\n", netease.Path, netease.Web, netease.Encrypted)
 				response, err := processor.Request(request, urlString)
 				if err != nil {
 					log.Println("Request error:", urlString)
@@ -229,7 +230,7 @@ func (h *HttpHandler) ServeHTTP(resp http.ResponseWriter, request *http.Request)
 					requestURI = requestURI + "?" + rawQuery
 				}
 
-				for hostDomain, _ := range common.HostDomain {
+				for hostDomain := range common.HostDomain {
 					if strings.Contains(request.Referer(), hostDomain) {
 						request.Header.Set("referer", request.Host)
 						break
@@ -263,6 +264,7 @@ func (h *HttpHandler) ServeHTTP(resp http.ResponseWriter, request *http.Request)
 		}
 	}
 }
+
 func proxyConnectLocalhost(rw http.ResponseWriter, req *http.Request) {
 	log.Printf("Local Received request %s %s %s\n",
 		req.Method,
@@ -299,6 +301,7 @@ func proxyConnectLocalhost(rw http.ResponseWriter, req *http.Request) {
 	defer client.Close()
 	defer server.Close()
 }
+
 func proxyConnect(rw http.ResponseWriter, req *http.Request) {
 	log.Printf("Received request %s %s %s\n",
 		req.Method,
@@ -331,6 +334,7 @@ func proxyConnect(rw http.ResponseWriter, req *http.Request) {
 	defer client.Close()
 	defer server.Close()
 }
+
 func startTlsServer(addr, certFile, keyFile string, handler http.Handler) {
 	log.Printf("starting TLS Server  %s\n", addr)
 	s := &http.Server{
@@ -345,6 +349,7 @@ func startTlsServer(addr, certFile, keyFile string, handler http.Handler) {
 		panic(err)
 	}
 }
+
 func startServer(addr string, handler http.Handler) {
 	log.Printf("starting Server  %s\n", addr)
 	s := &http.Server{
@@ -358,8 +363,8 @@ func startServer(addr string, handler http.Handler) {
 	if err != nil {
 		panic(err)
 	}
-
 }
+
 func printMemStats() {
 	var m runtime.MemStats
 	runtime.ReadMemStats(&m)
